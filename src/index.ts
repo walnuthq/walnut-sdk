@@ -12,7 +12,7 @@ interface WalnutTransactionLog {
 }
 
 async function sendLog(log: WalnutTransactionLog, apiKey: string) {
-	const url = 'https://api.walnut.dev/simulate'
+	const url = 'https://api.walnut.dev/v1/simulate'
 	try {
 		fetch(url, {
 			method: 'POST',
