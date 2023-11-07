@@ -1,0 +1,40 @@
+{
+	"name": "@walnut/sdk",
+	"version": "1.0.0",
+	"description": "",
+	"main": "dist/index.js",
+	"module": "dist/index.mjs",
+	"jsdelivr": "dist/index.global.js",
+	"unpkg": "dist/index.global.js",
+	"types": "dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.js",
+			"browser": "./dist/index.global.js",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsup && npm run build:esm && npm run build:iife && npm run build:dts",
+		"build:esm": "tsup --clean false --format esm --platform node",
+		"build:iife": "tsup --clean false --format iife --platform browser",
+		"build:dts": "tsup --clean false --dts-only"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"author": "walnut.dev",
+	"license": "MIT",
+	"keywords": [],
+	"devDependencies": {
+		"tsup": "^7.2.0",
+		"typescript": "^5.2.2"
+	},
+	"dependencies": {
+		"starknet": "^5.19.5"
+	}
+}
