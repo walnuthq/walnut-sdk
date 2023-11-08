@@ -8,7 +8,7 @@ interface WalnutTransactionLog {
 	nonce: number
 	max_fee: number
 	version: number
-	cairo_version: string
+	cairo_version?: string
 }
 
 async function sendLog(log: WalnutTransactionLog, apiKey: string) {
@@ -30,11 +30,11 @@ export function addWalnutLogs({ account, apiKey }: { account: AccountInterface; 
 		const log: WalnutTransactionLog = {
 			chain_id: transactionsDetail.chainId,
 			wallet_address: transactionsDetail.walletAddress,
-			calldata: transaction.getExecuteCalldata(transactions, transactionsDetail.cairoVersion),
+			calldata: transaction.fromCallsToExecuteCalldata(transactions),
 			nonce: Number(transactionsDetail.nonce),
 			max_fee: Number(transactionsDetail.maxFee),
 			version: Number(transactionsDetail.version),
-			cairo_version: transactionsDetail.cairoVersion,
+			// cairo_version: transactionsDetail.cairoVersion,
 		}
 		sendLog(log, apiKey)
 		return originalMethod.apply(this, args)

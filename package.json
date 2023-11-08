@@ -1,6 +1,6 @@
 {
-	"name": "@walnut/sdk",
-	"version": "1.0.0",
+	"name": "@walnuthq/sdk",
+	"version": "1.0.2",
 	"description": "",
 	"main": "dist/index.js",
 	"module": "dist/index.mjs",
@@ -28,13 +28,13 @@
 		"access": "public"
 	},
 	"author": "walnut.dev",
-	"license": "MIT",
+	"license": "UNLICENSED",
 	"keywords": [],
 	"devDependencies": {
 		"tsup": "^7.2.0",
 		"typescript": "^5.2.2"
 	},
 	"dependencies": {
-		"starknet": "^5.19.5"
+		"starknet": "^4.0"
 	}
 }
