@@ -1,4 +1,4 @@
-import { Abi, AccountInterface, AllowArray, CairoVersion, Call, Invocation, InvocationsDetails, constants, transaction } from 'starknet'
+import { AllowArray, CairoVersion, Call, Invocation, InvokeFunctionResponse, transaction } from 'starknet'
 
 interface WalnutTransactionLog {
 	chain_id: string
@@ -8,15 +8,19 @@ interface WalnutTransactionLog {
 	max_fee?: number
 }
 
+interface TransactionsDetail {
+	maxFee?: any
+}
+
 interface RequiredAccountMethods {
-	execute: AccountInterface['execute']
-	getChainId(): Promise<constants.StarknetChainId>
+	execute(transactions: AllowArray<Call>, abis?: unknown, transactionsDetail?: TransactionsDetail): Promise<InvokeFunctionResponse>
+	getChainId(): Promise<string>
 	address: string
 	getCairoVersion?(classHash?: string): Promise<CairoVersion>
 	isWalnutLogsAdded?: boolean
 }
 
-async function sendLog(apiKey: string, account: RequiredAccountMethods, calls: AllowArray<Call>, transactionsDetail?: InvocationsDetails) {
+async function sendLog(apiKey: string, account: RequiredAccountMethods, calls: AllowArray<Call>, transactionsDetail?: TransactionsDetail) {
 	try {
 		const transactions = Array.isArray(calls) ? calls : [calls]
 		const chainId = await account.getChainId()
@@ -42,7 +46,7 @@ async function sendLog(apiKey: string, account: RequiredAccountMethods, calls: A
 export function addWalnutLogs<T>({ account, apiKey }: { account: T & RequiredAccountMethods; apiKey: string }) {
 	if (account.isWalnutLogsAdded) return account
 	const originalExecuteMethod = account.execute
-	account.execute = function (...args: [calls: AllowArray<Call>, abis?: Abi[] | undefined, transactionsDetail?: InvocationsDetails | undefined]) {
+	account.execute = function (...args: [calls: AllowArray<Call>, abis?: unknown, transactionsDetail?: TransactionsDetail]) {
 		const calls = args[0]
 		const transactionsDetail = args[2]
 		sendLog(apiKey, account, calls, transactionsDetail)
