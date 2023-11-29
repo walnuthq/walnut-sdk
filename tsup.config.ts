@@ -5,5 +5,6 @@ export default defineConfig({
 	sourcemap: true,
 	clean: true,
 	format: ['cjs'],
-	globalName: 'walnut',
+	platform: 'browser',
+	noExternal: ['starknet'],
 })

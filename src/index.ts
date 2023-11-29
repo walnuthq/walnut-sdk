@@ -1,34 +1,36 @@
-import { Abi, AccountInterface, AllowArray, Call, Invocation, InvocationsDetails, InvocationsDetailsWithNonce, InvocationsSignerDetails } from 'starknet'
-import { transaction } from 'starknet'
+import { Abi, AccountInterface, AllowArray, CairoVersion, Call, Invocation, InvocationsDetails, constants, transaction } from 'starknet'
 
 interface WalnutTransactionLog {
 	chain_id: string
 	wallet_address: string
 	calldata: Invocation['calldata']
-	nonce: number
-	max_fee: number
-	version: number
 	cairo_version?: string
+	max_fee?: number
 }
 
-async function sendLog(apiKey: string, account: any, calls: AllowArray<Call>, transactionsDetail?: InvocationsDetails | undefined) {
-	const transactions = Array.isArray(calls) ? calls : [calls]
-	const nonce = Number(transactionsDetail?.nonce ?? (await account.getNonce()))
-	const maxFee =
-		transactionsDetail?.maxFee ?? transactionsDetail ? await account.getSuggestedMaxFee({ type: 'INVOKE', payload: calls }, transactionsDetail) : undefined
-	// const version = toBN(transactionVersion)
-	const chainId = await account.getChainId()
-	const log: WalnutTransactionLog = {
-		chain_id: chainId,
-		wallet_address: account.address,
-		calldata: transaction.fromCallsToExecuteCalldata(transactions),
-		nonce,
-		max_fee: maxFee,
-		version: 1,
-		// cairo_version: transactionsDetail.cairoVersion,
-	}
-	const url = 'https://api.walnut.dev/v1/simulate'
+interface RequiredAccountMethods {
+	execute: AccountInterface['execute']
+	getChainId(): Promise<constants.StarknetChainId>
+	address: string
+	getCairoVersion?(classHash?: string): Promise<CairoVersion>
+	isWalnutLogsAdded?: boolean
+}
+
+async function sendLog(apiKey: string, account: RequiredAccountMethods, calls: AllowArray<Call>, transactionsDetail?: InvocationsDetails) {
 	try {
+		const transactions = Array.isArray(calls) ? calls : [calls]
+		const chainId = await account.getChainId()
+		const cairo_version = account.getCairoVersion ? await account.getCairoVersion() : undefined
+		const calldata = transaction.getExecuteCalldata(transactions, cairo_version)
+		const max_fee = transactionsDetail?.maxFee ? Number(transactionsDetail?.maxFee) : undefined
+		const log: WalnutTransactionLog = {
+			chain_id: chainId,
+			wallet_address: account.address,
+			calldata,
+			cairo_version,
+			max_fee,
+		}
+		const url = 'https://api.walnut.dev/v1/simulate'
 		fetch(url, {
 			method: 'POST',
 			body: JSON.stringify(log),
@@ -37,8 +39,8 @@ async function sendLog(apiKey: string, account: any, calls: AllowArray<Call>, tr
 	} catch {}
 }
 
-export function addWalnutLogs<T>({ account, apiKey }: { account: T & { execute: AccountInterface['execute']; isWalnutLogsAdded?: boolean }; apiKey: string }) {
-	if (account.isWalnutLogsAdded) return account as T
+export function addWalnutLogs<T>({ account, apiKey }: { account: T & RequiredAccountMethods; apiKey: string }) {
+	if (account.isWalnutLogsAdded) return account
 	const originalExecuteMethod = account.execute
 	account.execute = function (...args: [calls: AllowArray<Call>, abis?: Abi[] | undefined, transactionsDetail?: InvocationsDetails | undefined]) {
 		const calls = args[0]
@@ -47,5 +49,5 @@ export function addWalnutLogs<T>({ account, apiKey }: { account: T & { execute: 
 		return originalExecuteMethod.apply(this, args)
 	}
 	account.isWalnutLogsAdded = true
-	return account as T
+	return account
 }
