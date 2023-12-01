@@ -16,6 +16,7 @@ interface RequiredAccountMethods {
 	execute(transactions: AllowArray<Call>, abis?: unknown, transactionsDetail?: TransactionsDetail): Promise<InvokeFunctionResponse>
 	getChainId(): Promise<string>
 	address: string
+	cairoVersion?: CairoVersion
 	getCairoVersion?(classHash?: string): Promise<CairoVersion>
 	isWalnutLogsAdded?: boolean
 }
@@ -24,7 +25,7 @@ async function sendLog(apiKey: string, account: RequiredAccountMethods, calls: A
 	try {
 		const transactions = Array.isArray(calls) ? calls : [calls]
 		const chainId = await account.getChainId()
-		const cairo_version = account.getCairoVersion ? await account.getCairoVersion() : undefined
+		const cairo_version: CairoVersion | undefined = account.cairoVersion ?? (account.getCairoVersion ? await account.getCairoVersion() : undefined)
 		const calldata = transaction.getExecuteCalldata(transactions, cairo_version)
 		const max_fee = transactionsDetail?.maxFee ? Number(transactionsDetail?.maxFee) : undefined
 		const log: WalnutTransactionLog = {
