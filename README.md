@@ -14,7 +14,7 @@ npm install @walnuthq/sdk
 ```
 
 ## Get your API KEY
-Before you can start using the Walnut SDK, you need to request access to Walnut on walnut.dev to obtain your API KEY.
+Before you can start using the Walnut SDK, you need to request access to Walnut to obtain your API KEY.
 
 1. Visit [walnut.dev](https://walnut.dev/) and sign up or request early access.
 2. Once your request is approved, you will receive your unique API KEY.
