@@ -38,3 +38,19 @@ const account = addWalnutLogs({
 // They will appear on the Walnut dashboard complete with traces and error messages
 account.execute(someTransactions);
 ```
+
+Sample setup for @starknet-react:
+
+```tsx
+import { StarknetConfig, useInjectedConnectors } from '@starknet-react/core';
+import { addWalnutLogsToConnectors } from '@walnuthq/sdk';
+
+export function StarknetProvider({ children }: { children: ReactNode }) {
+	const { connectors } = useInjectedConnectors({});
+	return (
+		<StarknetConfig connectors={addWalnutLogsToConnectors({ connectors, apiKey: '<WALNUT_API_KEY>' })}>
+			{children}
+		</StarknetConfig>
+	)
+}
+```

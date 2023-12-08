@@ -59,3 +59,17 @@ export function addWalnutLogs<T>({ account, apiKey }: { account: T & RequiredAcc
 	account.isWalnutLogsAdded = true
 	return account
 }
+
+interface RequiredConnectorMethods {
+	account(): Promise<RequiredAccountMethods>
+}
+
+export function addWalnutLogsToConnectors<T>({ connectors, apiKey }: { connectors: (T & RequiredConnectorMethods)[]; apiKey: string }) {
+	return connectors.map((connector) => {
+		const originalAccountMethod = connector.account
+		connector.account = async function () {
+			return addWalnutLogs({ account: await originalAccountMethod.apply(this), apiKey })
+		}
+		return connector
+	})
+}
