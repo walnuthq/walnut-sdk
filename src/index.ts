@@ -19,14 +19,16 @@ interface RequiredAccountMethods {
 	cairoVersion?: CairoVersion
 	getCairoVersion?(classHash?: string): Promise<CairoVersion>
 	isWalnutLogsAdded?: boolean
+	provider?: { nodeUrl: string }
 }
 
 async function sendLog(apiKey: string, account: RequiredAccountMethods, calls: AllowArray<Call>, transactionsDetail?: TransactionsDetail) {
 	try {
+		if (!account.provider?.nodeUrl) return
 		const transactions = Array.isArray(calls) ? calls : [calls]
 		const chainId = await account.getChainId()
 		const provider = new RpcProvider({
-			nodeUrl: chainId === '0x534e5f4d41494e' ? 'https://ofsg.mainnet-juno.rpc.nethermind.io' : 'https://ikah.goerli1-juno.rpc.nethermind.io',
+			nodeUrl: account.provider.nodeUrl,
 		})
 		const { cairo: cairo_version } = await provider.getContractVersion(account.address)
 		const calldata = transaction.getExecuteCalldata(transactions, cairo_version)
