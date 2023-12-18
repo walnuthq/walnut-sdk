@@ -7,4 +7,5 @@ export default defineConfig({
 	format: ['cjs'],
 	platform: 'browser',
 	noExternal: ['starknet'],
+	external: ['isomorphic-fetch'],
 })
