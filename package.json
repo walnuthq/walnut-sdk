@@ -1,6 +1,6 @@
 {
 	"name": "@walnuthq/sdk",
-	"version": "1.1.10",
+	"version": "1.1.11",
 	"description": "",
 	"main": "dist/index.js",
 	"module": "dist/index.mjs",
@@ -35,6 +35,7 @@
 		"typescript": "^5.2.2"
 	},
 	"dependencies": {
+		"@sentry/browser": "^7.91.0",
 		"starknet": "^5.24.3"
 	}
 }
