@@ -1,4 +1,9 @@
 import { AllowArray, CairoVersion, Call, Invocation, InvokeFunctionResponse, RpcProvider, transaction } from 'starknet'
+import * as Sentry from '@sentry/browser'
+
+const WALNUT_RPC_URL = 'https://api.walnut.dev/rpc/'
+const WALNUT_SIMULATE_URL = 'https://api.walnut.dev/v1/simulate'
+const SENTRY_DSN = 'https://6949783457ebec08625d15dd589d93f9@o1164952.ingest.sentry.io/4506455891771392'
 
 interface WalnutTransactionLog {
 	chain_id: string
@@ -19,16 +24,29 @@ interface RequiredAccountMethods {
 	cairoVersion?: CairoVersion
 	getCairoVersion?(classHash?: string): Promise<CairoVersion>
 	isWalnutLogsAdded?: boolean
-	provider?: { nodeUrl: string }
 }
 
+let isSentryInitialized = false
+
 async function sendLog(apiKey: string, account: RequiredAccountMethods, calls: AllowArray<Call>, transactionsDetail?: TransactionsDetail) {
+	if (!isSentryInitialized) {
+		Sentry.init({
+			dsn: SENTRY_DSN,
+			autoSessionTracking: false,
+			sendClientReports: false,
+			defaultIntegrations: false,
+			release: process.env.VERSION,
+		})
+		isSentryInitialized = true
+	}
+
+	let chainId: string
+
 	try {
-		if (!account.provider?.nodeUrl) return
 		const transactions = Array.isArray(calls) ? calls : [calls]
-		const chainId = await account.getChainId()
+		chainId = await account.getChainId()
 		const provider = new RpcProvider({
-			nodeUrl: account.provider.nodeUrl,
+			nodeUrl: WALNUT_RPC_URL + chainId,
 		})
 		const { cairo: cairo_version } = await provider.getContractVersion(account.address)
 		const calldata = transaction.getExecuteCalldata(transactions, cairo_version)
@@ -40,13 +58,20 @@ async function sendLog(apiKey: string, account: RequiredAccountMethods, calls: A
 			cairo_version,
 			max_fee,
 		}
-		const url = 'https://api.walnut.dev/v1/simulate'
-		fetch(url, {
+		const response = await fetch(WALNUT_SIMULATE_URL, {
 			method: 'POST',
 			body: JSON.stringify(log),
 			headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
 		})
-	} catch {}
+		if (response.status !== 200) throw Error('Failed to send log')
+	} catch (error) {
+		Sentry.withScope((scope) => {
+			scope.setTag('chain_id', chainId)
+			scope.setContext('additional_data', { app_api_key: apiKey })
+			scope.setUser({ wallet_address: account?.address })
+			Sentry.captureException(error, scope)
+		})
+	}
 }
 
 export function addWalnutLogs<T>({ account, apiKey }: { account: T & RequiredAccountMethods; apiKey: string }) {
