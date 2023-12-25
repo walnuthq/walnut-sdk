@@ -35,7 +35,7 @@ async function sendLog(apiKey: string, account: RequiredAccountMethods, calls: A
 			autoSessionTracking: false,
 			sendClientReports: false,
 			defaultIntegrations: false,
-			release: '1.1.11',
+			release: process.env.VERSION,
 		})
 		isSentryInitialized = true
 	}

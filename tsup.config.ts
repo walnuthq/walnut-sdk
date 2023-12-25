@@ -1,4 +1,5 @@
 import { defineConfig } from 'tsup'
+import pkg from './package.json'
 
 export default defineConfig({
 	entry: ['src/index.ts'],
@@ -8,4 +9,7 @@ export default defineConfig({
 	platform: 'browser',
 	noExternal: ['starknet'],
 	external: ['isomorphic-fetch'],
+	define: {
+		'process.env.VERSION': JSON.stringify(pkg.version),
+	},
 })
